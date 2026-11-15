@@ -1,0 +1,38 @@
+name: Azure Guard - cleanup
+on:
+  schedule:
+    - cron: '17 */6 * * *' # hourly, UTC; GitHub may delay scheduled jobs
+  workflow_dispatch:
+    inputs:
+      delete:
+        description: 'Actually delete eligible tagged resource groups?'
+        required: true
+        type: boolean
+        default: false
+permissions:
+  id-token: write
+  contents: read
+concurrency:
+  group: azure-guard-cleanup
+  cancel-in-progress: false
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.delete && 'azure-guard-delete' || 'azure-guard-preview' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLEANUP_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: Preview or delete eligible groups
+        shell: pwsh
+        env:
+          AZURE_GUARD_WEBHOOK: ${{ secrets.TEAMS_WORKFLOW_WEBHOOK }}
+          SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          DELETE_REQUESTED: ${{ inputs.delete }}
+        run: |
+          $params = @{ SubscriptionId = $env:SUBSCRIPTION_ID; Hours = 72 }
+          if ($env:DELETE_REQUESTED -eq 'true') { $params.Delete = $true }
+          ./cleanup.ps1 @params

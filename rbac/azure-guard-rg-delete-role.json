@@ -1,0 +1,18 @@
+{
+  "Name": "Azure Guard - RG Delete",
+  "IsCustom": true,
+  "Description": "Allows deletion of preapproved disposable resource groups.",
+  "Actions": [
+    "Microsoft.Resources/subscriptions/resourceGroups/read",
+    "Microsoft.Resources/subscriptions/resourceGroups/delete",
+    "Microsoft.Resources/subscriptions/resourceGroups/resources/read",
+    "Microsoft.Authorization/locks/read",
+    "Microsoft.Insights/eventtypes/values/read"
+  ],
+  "NotActions": [],
+  "DataActions": [],
+  "NotDataActions": [],
+  "AssignableScopes": [
+    "/subscriptions/bba54ba4-13fe-4f20-8bba-a653c0f83275"
+  ]
+}
