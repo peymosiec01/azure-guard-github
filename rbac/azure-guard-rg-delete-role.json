@@ -1,13 +1,18 @@
 {
   "Name": "Azure Guard - RG Delete",
   "IsCustom": true,
-  "Description": "Allows deletion of preapproved disposable resource groups.",
+  "Description": "Allows Azure Guard to inspect and delete an explicitly approved disposable resource group and remove its Cognitive Services model deployments.",
   "Actions": [
     "Microsoft.Resources/subscriptions/resourceGroups/read",
     "Microsoft.Resources/subscriptions/resourceGroups/delete",
     "Microsoft.Resources/subscriptions/resourceGroups/resources/read",
+
     "Microsoft.Authorization/locks/read",
-    "Microsoft.Insights/eventtypes/values/read"
+    "Microsoft.Insights/eventtypes/values/read",
+
+    "Microsoft.CognitiveServices/accounts/read",
+    "Microsoft.CognitiveServices/accounts/deployments/read",
+    "Microsoft.CognitiveServices/accounts/deployments/delete"
   ],
   "NotActions": [],
   "DataActions": [],

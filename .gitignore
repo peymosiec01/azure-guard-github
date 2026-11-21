@@ -1,0 +1,12 @@
+# Local configuration
+.env
+
+# PowerShell local files
+*.log
+
+# Editor files
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db

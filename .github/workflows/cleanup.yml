@@ -1,7 +1,7 @@
 name: Azure Guard - cleanup
 on:
   schedule:
-    - cron: '17 */6 * * *' # hourly, UTC; GitHub may delay scheduled jobs
+    -cron: '17 */6 * * *' # Every six hours at minute 17 UTC
   workflow_dispatch:
     inputs:
       delete:
@@ -18,7 +18,7 @@ concurrency:
 jobs:
   cleanup:
     runs-on: ubuntu-latest
-    environment: ${{ inputs.delete && 'azure-guard-delete' || 'azure-guard-preview' }}
+    environment: ${{ github.event_name == 'workflow_dispatch' && inputs.delete && 'azure-guard-delete' || 'azure-guard-preview' }}
     steps:
       - uses: actions/checkout@v4
       - uses: azure/login@v2
@@ -31,7 +31,7 @@ jobs:
         env:
           AZURE_GUARD_WEBHOOK: ${{ secrets.TEAMS_WORKFLOW_WEBHOOK }}
           SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          DELETE_REQUESTED: ${{ inputs.delete }}
+          DELETE_REQUESTED: ${{ github.event_name == 'workflow_dispatch' && inputs.delete || false }}
         run: |
           $params = @{ SubscriptionId = $env:SUBSCRIPTION_ID; Hours = 72 }
           if ($env:DELETE_REQUESTED -eq 'true') { $params.Delete = $true }

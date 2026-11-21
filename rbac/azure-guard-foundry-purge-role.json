@@ -1,0 +1,15 @@
+{
+  "Name": "Azure Guard - Foundry Purge",
+  "IsCustom": true,
+  "Description": "Allows Azure Guard to inspect and purge soft-deleted Cognitive Services and Microsoft Foundry accounts.",
+  "Actions": [
+    "Microsoft.CognitiveServices/locations/resourceGroups/deletedAccounts/read",
+    "Microsoft.CognitiveServices/locations/resourceGroups/deletedAccounts/delete"
+  ],
+  "NotActions": [],
+  "DataActions": [],
+  "NotDataActions": [],
+  "AssignableScopes": [
+    "/subscriptions/bba54ba4-13fe-4f20-8bba-a653c0f83275"
+  ]
+}
