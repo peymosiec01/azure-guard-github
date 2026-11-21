@@ -1,7 +1,9 @@
 name: Azure Guard - cleanup
+
 on:
   schedule:
-    -cron: '17 */6 * * *' # Every six hours at minute 17 UTC
+    - cron: '17 */6 * * *' # Every six hours at minute 17 UTC
+
   workflow_dispatch:
     inputs:
       delete:
@@ -9,30 +11,47 @@ on:
         required: true
         type: boolean
         default: false
+
 permissions:
   id-token: write
   contents: read
+
 concurrency:
   group: azure-guard-cleanup
   cancel-in-progress: false
+
 jobs:
   cleanup:
     runs-on: ubuntu-latest
+
     environment: ${{ github.event_name == 'workflow_dispatch' && inputs.delete && 'azure-guard-delete' || 'azure-guard-preview' }}
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: azure/login@v2
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZURE_CLEANUP_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
       - name: Preview or delete eligible groups
         shell: pwsh
         env:
           AZURE_GUARD_WEBHOOK: ${{ secrets.TEAMS_WORKFLOW_WEBHOOK }}
           SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           DELETE_REQUESTED: ${{ github.event_name == 'workflow_dispatch' && inputs.delete || false }}
+
         run: |
-          $params = @{ SubscriptionId = $env:SUBSCRIPTION_ID; Hours = 72 }
-          if ($env:DELETE_REQUESTED -eq 'true') { $params.Delete = $true }
+          $params = @{
+            SubscriptionId = $env:SUBSCRIPTION_ID
+            Hours = 72
+          }
+
+          if ($env:DELETE_REQUESTED -eq 'true') {
+            $params.Delete = $true
+          }
+
           ./cleanup.ps1 @params
