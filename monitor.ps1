@@ -105,37 +105,53 @@ catch {
 }
 
 # ------------------------------------------------------------
-# 5. Build report
+# Build report
 # ------------------------------------------------------------
 
 $roundedSpend = [math]::Round($spent, 2)
-$remaining = 'Not available (credits require billing-specific access)'
 
 if ($MonthlyBudget -gt 0) {
-    $budgetRemaining = [math]::Round(([double]$MonthlyBudget - $spent), 2)
-    $budgetLine = "Configured monthly budget: $MonthlyBudget (compare only if same currency); budget less cost: $budgetRemaining"
+    $budgetRemaining = [math]::Round(
+        ([double]$MonthlyBudget - $spent),
+        2
+    )
+
+    if ($spent -gt $MonthlyBudget) {
+        $status = 'Over budget'
+        $statusColour = 'Attention'
+    }
+    elseif ($spent -ge ($MonthlyBudget * 0.8)) {
+        $status = 'Approaching budget'
+        $statusColour = 'Warning'
+    }
+    else {
+        $status = 'Within budget'
+        $statusColour = 'Good'
+    }
 }
 else {
-    $budgetLine = 'No monthly budget configured'
+    $budgetRemaining = 0
+    $status = 'No budget configured'
+    $statusColour = 'Default'
 }
 
 $generatedUtc = [datetime]::UtcNow.ToString('u')
 
+# Console / GitHub Actions output
 $message = @(
     'Azure daily cost report'
-    "Subscription: $SubscriptionId"
     "Month-to-date actual cost: $roundedSpend $currency"
-    $budgetLine
-    "Sponsorship credit balance: $remaining"
+    "Configured monthly budget: $MonthlyBudget"
+    "Budget remaining: $budgetRemaining"
+    "Status: $status"
     "Generated UTC: $generatedUtc"
     'Note: Cost Management data may lag actual consumption.'
-    'Guardrail: Foundry/Cognitive Services model deployments are removed before resource-group deletion, and soft-deleted accounts are purged.'
 ) -join [Environment]::NewLine
 
 Write-Output $message
 
 # ------------------------------------------------------------
-# 6. Optional Teams notification
+# Optional Teams notification
 # ------------------------------------------------------------
 
 if ([string]::IsNullOrWhiteSpace($WebhookUrl)) {
@@ -143,18 +159,32 @@ if ([string]::IsNullOrWhiteSpace($WebhookUrl)) {
     exit 0
 }
 
-try {
-    $webhookBody = @{ text = $message } | ConvertTo-Json -Depth 4 -Compress
+$webhookBody = @{
+    title = 'Azure Guard | Daily Cost Report'
+    cost = $roundedSpend
+    currency = $currency
+    budget = $MonthlyBudget
+    remaining = $budgetRemaining
+    status = $status
+    statusColour = $statusColour
+    generatedUtc = $generatedUtc
+    note = 'Cost Management data may lag actual consumption.'
+} | ConvertTo-Json -Depth 4 -Compress
 
+try {
     Invoke-RestMethod `
         -Method Post `
         -Uri $WebhookUrl `
         -ContentType 'application/json' `
-        -Body $webhookBody | Out-Null
+        -Body $webhookBody |
+        Out-Null
 
     Write-Output 'Teams notification sent successfully.'
 }
 catch {
-    Write-Error ("Teams notification failed: {0}" -f $_.Exception.Message)
+    Write-Error (
+        "Teams notification failed: {0}" -f $_.Exception.Message
+    )
+
     exit 1
 }
