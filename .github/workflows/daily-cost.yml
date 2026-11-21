@@ -19,7 +19,7 @@ jobs:
       - name: Daily cost and Teams report
         shell: pwsh
         env:
-          AZURE_GUARD_WEBHOOK: ${{ secrets.TEAMS_WORKFLOW_WEBHOOK }}
+          AZURE_GUARD_WEBHOOK: ${{ secrets.TEAMS_COST_WEBHOOK }}
           SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           MONTHLY_BUDGET: ${{ vars.MONTHLY_BUDGET }}
         run: |

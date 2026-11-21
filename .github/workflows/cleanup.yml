@@ -40,7 +40,7 @@ jobs:
       - name: Preview or delete eligible groups
         shell: pwsh
         env:
-          AZURE_GUARD_WEBHOOK: ${{ secrets.TEAMS_WORKFLOW_WEBHOOK }}
+          AZURE_GUARD_WEBHOOK: ${{ secrets.TEAMS_CLEANUP_WEBHOOK }}
           SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           DELETE_REQUESTED: ${{ github.event_name == 'workflow_dispatch' && inputs.delete || false }}
 
